@@ -1,6 +1,10 @@
 const link = "http://api.weatherstack.com/current?access_key=9654ede85caffd34700b131ab7d77761";
 
 const root = document.getElementById('root');
+const popup = document.getElementById('popup');
+const textInput = document.getElementById("text-input");
+const form = document.getElementById("form");
+
 
 let store = {
     city: "Los Angeles",
@@ -11,12 +15,12 @@ let store = {
     description: "",
 
     properties: {
-      cloudcover: 0,
-      humidity: 0,
-      windSpeed: 0,
-      pressure: 0,
-      uvIndex: 0,
-      visibility: 0,
+      cloudcover: {},
+      humidity: {},
+      windSpeed: {},
+      pressure: {},
+      uvIndex: {},
+      visibility: {},
     },
 
 }
@@ -24,7 +28,7 @@ let store = {
 const fetchData = async () => {
     const result = await fetch(`${link}&query=${store.city}`);
     const data = await result.json();
-    console.log(data)
+    // console.log(data)
     const { 
         current: {
                 feelslike, 
@@ -52,37 +56,45 @@ const fetchData = async () => {
 
         properties: {
           cloudcover: {
+            title: 'cloudcover',
             value: `${cloudcover}%`,
             icon: "cloud.png",
           },
           humidity: {
+            title: 'humidity',
             value: `${humidity}%`,
             icon: "humidity.png",
           },
           windSpeed: {
+            title: 'windSpeed',
             value: `${windSpeed} km/h`,
             icon: "wind.png"
           },
           
           pressure: {
+            title: 'pressure',
             value: `${pressure} Pa`,
             icon: "gauge.png"
           },
           uvIndex: {
+            title: 'uvIndex',
             value: `${uvIndex} / 100`,
             icon: "uv-index.png"
           },
           visibility: {
+            title: 'visibility',
             value: `${visibility}%`,
             icon: "visibility.png"
           },
         },
     };
+
     renderComponent();
-    // console.log(data)
+
 };
 
 const getImage = (description) => {
+
   const value = description.toLowerCase();
   switch(value) {
     case "partly cloudy":
@@ -104,21 +116,25 @@ const getImage = (description) => {
 
     default:
       return "the.png";
-    
   }
+
 }
 
 const renderProperty = (properties) => {
-  console.log(properties)
-  return `<div class="property">
-            <div class="property-icon">
-              <img src="./img/icons/" alt="">
-            </div>
-            <div class="property-info">
-              <div class="property-info__value"></div>
-              <div class="property-info__description"></div>
-            </div>
-          </div>`;
+  return Object.values(properties).map((data) => {
+    const { icon, value, title } = data
+    return `<div class="property">
+              <div class="property-icon">
+                <img src="./img/icons/${icon}" alt="">
+              </div>
+              <div class="property-info">
+                <div class="property-info__value">${value}</div>
+                <div class="property-info__description">${title}</div>
+              </div>
+            </div>`;
+  }).join('');
+
+
 }
 
 const markup = () => {
@@ -150,8 +166,24 @@ const containerClass = isDay === "yes" ? "is-day" : "";
     </div>`;
 }
 
-const renderComponent = () => {
-    root.innerHTML = markup();
+const togglePopupClass = () => {
+  popup.classList.toggle("active");
 };
+
+const renderComponent = () => {
+  root.innerHTML = markup();
+
+  const city = document.getElementById("city");
+  city.addEventListener("click", togglePopupClass);
+};
+
+const handleInput = (e) => {
+  store = {
+    ...store,
+    city: e.target.value,
+  }
+}
+
+textInput.addEventListener('input', handleInput)
 
 fetchData();
