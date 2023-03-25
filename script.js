@@ -1,9 +1,11 @@
-const link = "http://api.weatherstack.com/current?access_key=9654ede85caffd34700b131ab7d77761";
+const link = "http://api.weatherstack.com/current?access_key=8e8a6a1397071617da6946d4d24397ea";
 
 const root = document.getElementById('root');
 const popup = document.getElementById('popup');
 const textInput = document.getElementById("text-input");
 const form = document.getElementById("form");
+const close = document.getElementById("close");
+
 
 
 let store = {
@@ -26,9 +28,10 @@ let store = {
 }
 
 const fetchData = async () => {
-    const result = await fetch(`${link}&query=${store.city}`);
+  try {
+    const query = localStorage.getItem('query') || store.city;
+    const result = await fetch(`${link}&query=${query}`);
     const data = await result.json();
-    // console.log(data)
     const { 
         current: {
                 feelslike, 
@@ -42,6 +45,9 @@ const fetchData = async () => {
                 is_day: isDay, 
                 weather_descriptions: description, 
                 wind_speed: windSpeed,
+            },
+            location: {
+              name,
             }
         } = data;
 
@@ -50,7 +56,7 @@ const fetchData = async () => {
         feelslike,
         temperature,
         observationTime,
-
+        city: name,
         isDay,
         description: description[0],
 
@@ -90,7 +96,9 @@ const fetchData = async () => {
     };
 
     renderComponent();
-
+  }catch(err) {
+    alert(err)
+  }
 };
 
 const getImage = (description) => {
@@ -184,6 +192,23 @@ const handleInput = (e) => {
   }
 }
 
+const handleSubmit = (e) => {
+  e.preventDefault();
+  const value = store.city;
+
+  if (!value) return null;
+
+  localStorage.setItem("query", value);
+  fetchData();
+  togglePopupClass();
+};
+
+const closePopup = () => {
+  popup.classList.remove('active')
+};
+
+form.addEventListener('submit', handleSubmit)
 textInput.addEventListener('input', handleInput)
+close.addEventListener('click', closePopup)
 
 fetchData();
